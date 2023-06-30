@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+    <title>Command Line Interface</title>
+
+  </head>
+<style>
+    .vh-60 {
+    height: 60vh;
+}
+
+h1,h2,h3,h4,h5,h6,p {
+    margin: 0;
+    color:white;
+}
+
+.bg-header {
+    background: #2A69AE;
+}
+
+.bg-result {
+    background: #32363D;
+}
+#CLIOutputDiv
+{
+    overflow: scroll;
+}
+  </style>
+  <body>
+    <div class="bg-success vh-100 d-flex flex-column justify-content-center">
+        <div class="container col-8 px-0 bg-result">
+            <div class="text-center bg-header py-2">
+                <h1>MathTools With Input Validation</h1>
+                <h6>BTools search title=harry / BTools search author=hawkings / BTools isbn-lookup 978-0439708180</h6>
+            </div>
+
+            <div id="CLIOutputDiv" class="container vh-60 bg-dark p-3 text-white">
+            </div>
+
+
+            <div class="container input-group py-2">
+                <input type="text" id ="CLITextInput" class="form-control" placeholder="type any command" aria-label="Username" aria-describedby="addon-wrapping">
+            </div>
+        </div>
+    </div>
+  </body>
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+
+<body style="background: #1D4434">
+<div id="gameDiv" class="vh-100 d-flex flex-column">
+
+</div>
+<script>
+const config = {
+  //url: "https://openlibrary.org/api/books?jscmd=data&format=json&bibkeys=ISBN:",
+  url: "https://openlibrary.org/search.json?",
+};
+let CLITextInput = document.getElementById("CLITextInput");
+let CLIOutputDiv = document.getElementById("CLIOutputDiv");
+CLITextInput.addEventListener("keyup", (event)=>submitSearch(event));
+//とりあえずブラウザに表示できるようにする.
+//valueもそのあと空にする
+function submitSearch(event){
+//入力検証の保護
+if(event.key == "Enter"){
+        //trim,splitを行う
+        //["BTools", "search", "Tom"]
+        let parsedCLIArray = BTools.commandLineParser(CLITextInput.value);
+        //search title
+        if(parsedCLIArray[1] =="search" && parsedCLIArray[2][0]=="t"){
+            //これだと、非同期関数を待つ前にreturnされてしまうから、promiseオブジェクトがそのまま返ってくる
+            //BTools.appendEchoParagraph(CLIOutputDiv, BTools.fetchAPI(config.url + parsedCLIArray[2]));
+            //これだと、非同期関数を待っている。
+            BTools.fetchAPI(config.url + parsedCLIArray[2])
+            .then(function(data) {
+            BTools.appendEchoParagraph(CLIOutputDiv, data.docs[0].title);
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
+        }
+        //search author
+        else if(parsedCLIArray[1] =="search" && parsedCLIArray[2][0]=="a"){
+            //これだと、非同期関数を待つ前にreturnされてしまうから、promiseオブジェクトがそのまま返ってくる
+            //BTools.appendEchoParagraph(CLIOutputDiv, BTools.fetchAPI(config.url + parsedCLIArray[2]));
+            //これだと、非同期関数を待っている。
+            BTools.fetchAPI(config.url + parsedCLIArray[2])
+            .then(function(data) {
+            BTools.appendEchoParagraph(CLIOutputDiv, data.docs[0].author_name);
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
+        }
+        //その後はinputを空にする
+        CLITextInput.value = '';
+}
+}
+// 上記の修正により、BTools.appendEchoParagraphメソッドは
+// 取得したデータとDOM要素（CLIOutputDiv）を使用してパラグラフ
+// 要素を生成し、CLIOutputDivに追加します
+class BTools
+{
+    static commandLineParser(CLIInputString){
+        let parsedStringInputArray = CLIInputString.trim().split(" ");
+        return parsedStringInputArray;
+    }
+    static fetchAPI(data) {
+    //普通はfetch前にreturnしないけど、まあよしとしよう。
+    //return fetch(data)とかいて、他の関数に飛ばしてfetchを行うことで、
+    //このような書き方をしなくても済むようになる。
+  return fetch(data)
+    .then((response) => response.json())
+    .then(function (data) {
+      console.log("fetchはできてるよ。");
+      console.log(data);
+    //   return data.docs[0].title;
+    return data;
+    });
+}
+
+    //ユーザーのvalueをdivにappendして出力する関数
+    static appendEchoParagraph(parentDiv,data) {
+  console.log("enter pressed");
+  parentDiv.innerHTML +=
+    `<p class="m-0">
+      <span style='color:green'>student</span>
+      <span style='color:magenta'>@</span>
+      <span style='color:blue'>recursionist</span>
+      : ${data}
+    </p>`;
+}
+}
+</script>
+</body>
+</html><!-- CLI Book Lookup Console version -->
